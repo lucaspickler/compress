@@ -156,26 +156,20 @@ struct readbytes_args
 /*
  * Reads data from a file.
  */
-static void *lzw_readbytes(void *args)
+static buffer_t lzw_readbytes(FILE *in)
 {
-	int ch;       /* Working character. */
-	FILE *in;     /* Input file.        */
-	buffer_t out; /* Output buffer.     */
-
-	in = ((struct readbytes_args *)args)->in;
-	out = ((struct readbytes_args *)args)->out;
+	int ch;
+	buffer_t inbuf;
 	
-	/*
-	 * Read data from file and feed
-	 * buffer.
-	 */
-	while ((ch = fgetc(in)) != EOF) {
-		buffer_put(out, ch & 0xff);
-	}
-	
-	buffer_put(out, EOF);
+	inbuf = buffer_open(1 << WIDTH);
 
-	return (NULL);
+	/* Read data from file to a buffer. */
+	while ((ch = fgetc(in)) != EOF)
+		buffer_put(inbuf, ch & 0xff);
+	
+	buffer_put(inbuf, EOF);
+
+	return (inbuf);
 }
 
 /*============================================================================*
@@ -438,65 +432,25 @@ void *lzw_decompress(void *args)
  */
 void lzw(FILE *input, FILE *output, int compress)
 {
-	pthread_t tids[3];                  /* Thread IDs.                 */
-	buffer_t inbuf;                     /* Input buffer.               */
-	buffer_t outbuf;                    /* Output buffer.              */
-	struct compress_args comp_args;     /* lzw_compress() arguments.   */
-	struct decompress_args decomp_args; /* lzw_decompress() arguments. */
-	struct writebytes_args wbytes_args; /* lzw_writebytes() arguments. */
-	struct readbytes_args rbytes_args;  /* lzw_readbytes() arguments.  */
-	struct readbits_args rbits_args;    /* lzw_readbits() arguments.   */
-	struct writebits_args wbits_args;   /* lzw_writebits() arguments.  */
-	
-	inbuf = buffer_open(1 << WIDTH);
-	outbuf = buffer_open(1 << WIDTH);
+	buffer_t inbuf;  /* Input buffer.  */
+	buffer_t outbuf; /* Output buffer. */
 	
 	/* Compress mode. */
 	if (compress)
 	{
-		rbytes_args.in = input;
-		rbytes_args.out = inbuf;
-
-		comp_args.in = inbuf;
-		comp_args.out = outbuf;
-		
-		wbits_args.in = outbuf;
-		wbits_args.out = output;
-			
-		/* Spawn working threads. */
-		pthread_create(&tids[0], NULL, lzw_readbytes, &rbytes_args);
-		pthread_create(&tids[1], NULL, lzw_compress, &comp_args);
-		pthread_create(&tids[2], NULL, lzw_writebits, &wbits_args);
-
-		/* Join threads. */
-		pthread_join(tids[0], NULL);
-		pthread_join(tids[1], NULL);
-		pthread_join(tids[2], NULL);
+		inbuf = lzw_readbytes(input);
+		outbuf = lzw_compress(inbuf);
+		lzw_writebits(outbuf);
 	}
 	
 	/* Decompress mode. */
 	else
 	{	
-		rbits_args.in = input;
-		rbits_args.out = inbuf;
-
-		decomp_args.in = inbuf;
-		decomp_args.out = outbuf;
-		
-		wbytes_args.in = outbuf;
-		wbytes_args.out = output;
-			
-		/* Spawn working threads. */
-		pthread_create(&tids[0], NULL, lzw_readbits, &rbits_args);
-		pthread_create(&tids[1], NULL, lzw_decompress, &decomp_args);
-		pthread_create(&tids[2], NULL, lzw_writebytes, &wbytes_args);
-
-		/* Join threads. */
-		pthread_join(tids[0], NULL);
-		pthread_join(tids[1], NULL);
-		pthread_join(tids[2], NULL);
+		inbuf = lzw_readbits(input);
+		outbuf = lzw_decompress(inbuf);
+		lzw_writebytes(outbuf);
 	}
 	
-	buffer_close(outbuf);
-	buffer_close(inbuf);
+	buffer_destroy(outbuf);
+	buffer_destroy(inbuf);
 }

@@ -9,19 +9,10 @@
 
 	#include <stdlib.h>
 
-	/*
-	 * Prints an error message and exits.
-	 */
-	extern void error(const char *msg);
-	
-	/*
-	 * Prints a warning message.
-	 */
-	extern void warning(const char *msg);
-	
-	/*
-	 * Safe malloc().
-	 */
-	extern void *smalloc(size_t size);
+	/* Forward definitions. */
+	extern void error(const char *);
+	extern void warning(const char *);
+	extern void *smalloc(size_t);
+	extern void *srealloc(void *, size_t);
 
 #endif /* UTIL_H_ */

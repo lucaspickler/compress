@@ -51,3 +51,18 @@ void *smalloc(size_t size)
 	
 	return (p);
 }
+
+/*
+ * Safe realloc().
+ */
+void *srealloc(void *p, size_t size)
+{
+	void *p2;
+
+	p2 = realloc(p, size);
+	if (p2 == NULL)
+		error("cannot srealloc()");
+
+	return (p2);
+}
+

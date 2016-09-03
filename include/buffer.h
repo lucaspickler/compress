@@ -11,25 +11,11 @@
 	 * Opaque pointer to a circular buffer.
 	 */
 	typedef struct buffer * buffer_t;
-	
-	/*
-	 * Closes a circular buffer.
-	 */
-	extern void buffer_close(buffer_t buf);
-	
-	/*
-	 * Gets an item from a circular buffer.
-	 */
-	extern unsigned buffer_get(buffer_t buf);
-	
-	/*
-	 * Opens a circular buffer.
-	 */
-	extern buffer_t buffer_open(unsigned size);
-	
-	/*
-	 * Puts an item in a circular buffer.
-	 */
-	extern void buffer_put(buffer_t buf, unsigned item);
+
+	/* Forward definitions. */
+	extern void buffer_destroy(buffer_t);
+	extern unsigned buffer_get(buffer_t);
+	extern buffer_t buffer_create(unsigned);
+	extern void buffer_put(buffer_t, unsigned);
 
 #endif /* BUFFER_H_ */

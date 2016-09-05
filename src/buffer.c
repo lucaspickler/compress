@@ -26,7 +26,7 @@ struct buffer *buffer_create(unsigned size)
 	struct buffer *buf;
 	
 	/* Sanity check. */
-	assert(size > 0)
+	assert(size > 0);
 
 	buf = smalloc(size*sizeof(struct buffer));
 	

@@ -39,9 +39,9 @@
  */
 static void lzw_writebits(buffer_t in, FILE *out)
 {
-	int bits;    /* Working bits. */
-	unsigned n;  /* Current bit.  */
-	int buf;     /* Buffer.       */
+	int bits;   /* Working bits. */
+	unsigned n; /* Current bit.  */
+	int buf;    /* Buffer.       */
 	
 	n = 0;
 	buf = 0;
@@ -64,9 +64,8 @@ static void lzw_writebits(buffer_t in, FILE *out)
 		}
 	}
 	
-	if (n > 0) {
+	if (n > 0)
 		fputc((buf << (8 - n)) & 0xff, out);
-	}
 }
 
 /*============================================================================*
@@ -78,9 +77,9 @@ static void lzw_writebits(buffer_t in, FILE *out)
  */
 static void lzw_readbits(FILE *in, buffer_t out)
 {
-	int bits;     /* Working bits.  */
-	unsigned n;   /* Current bit.   */
-	int buf;      /* Buffer.        */
+	int bits;   /* Working bits. */
+	unsigned n; /* Current bit.  */
+	int buf;    /* Buffer.       */
 	
 	n = 0;
 	buf = 0;
@@ -149,12 +148,10 @@ static void lzw_writebytes(buffer_t inbuf, FILE *outfile)
  */
 static code_t lzw_init(dictionary_t dict, int radix)
 {
-	int i;
-	
-	for (i = 0; i < radix; i++)
+	for (int i = 0; i < radix; i++)
 		dictionary_add(dict, 0, i, i);
 	
-	return (i);
+	return (radix);
 }
 
 /*
@@ -162,10 +159,10 @@ static code_t lzw_init(dictionary_t dict, int radix)
  */
 static void lzw_compress(buffer_t in, buffer_t out)
 {	
-	unsigned ch;       /* Working character.          */
-	int i, ni;         /* Working entries.            */
-	code_t code;       /* Current code.               */
-	dictionary_t dict; /* Dictionary.                 */
+	unsigned ch;       /* Working character. */
+	int i, ni;         /* Working entries.   */
+	code_t code;       /* Current code.      */
+	dictionary_t dict; /* Dictionary.        */
 	
 	dict = dictionary_create(1 << WIDTH);
 	

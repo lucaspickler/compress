@@ -27,11 +27,9 @@
  */
 void dictionary_reset(struct dictionary *dict)
 {
-	int i;
-	
 	dict->nentries = 1;
 	
-	for (i = 0; i < dict->max_entries; i++)
+	for (int i = 0; i < dict->max_entries; i++)
 	{
 		dict->entries[i].parent = -1;
 		dict->entries[i].child = -1;
@@ -44,8 +42,7 @@ void dictionary_reset(struct dictionary *dict)
  */
 struct dictionary *dictionary_create(int max_entries)
 {
-	int i;                   /* Loop index. */
-	struct dictionary *dict; /* Dictionary. */
+	struct dictionary *dict;
 	
 	/* Sanity check. */
 	assert(max_entries > 0);
@@ -56,7 +53,7 @@ struct dictionary *dictionary_create(int max_entries)
 	dict->max_entries = (max_entries + 1);
 	dict->nentries = 1;
 	dict->entries = smalloc((max_entries + 1)*sizeof(struct entry));
-	for (i = 0; i < (max_entries + 1); i++)
+	for (int i = 0; i < (max_entries + 1); i++)
 	{
 		dict->entries[i].parent = -1;
 		dict->entries[i].child = -1;
@@ -90,7 +87,8 @@ int dictionary_add(struct dictionary *dict, int i, char ch, code_t code)
 	assert(i >= 0);
 	
 	/* Dictionary overflow. */
-	if (dict->nentries >= dict->max_entries) {
+	if (dict->nentries >= dict->max_entries)
+	{
 		warning("dictionary overflow");
 		return (-1);
 	}
@@ -113,9 +111,7 @@ int dictionary_add(struct dictionary *dict, int i, char ch, code_t code)
  */
 int dictionary_find(struct dictionary *dict, int i, char ch)
 {
-	int j;
-	
-	for (j = dict->entries[i].child; j >= 0; j = dict->entries[j].next)
+	for (int j = dict->entries[i].child; j >= 0; j = dict->entries[j].next)
 	{
 		if (ch == dict->entries[j].ch)
 			return (j);

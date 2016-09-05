@@ -19,12 +19,15 @@ struct buffer
 };
 
 /*
- * Opens a buffer.
+ * Creates a buffer.
  */
 struct buffer *buffer_create(unsigned size)
 {
 	struct buffer *buf;
 	
+	/* Sanity check. */
+	assert(size > 0)
+
 	buf = smalloc(size*sizeof(struct buffer));
 	
 	/* Initialize buffer. */
@@ -37,7 +40,7 @@ struct buffer *buffer_create(unsigned size)
 }
 
 /*
- * Closes a buffer.
+ * Destroys a buffer.
  */
 void buffer_destroy(struct buffer *buf)
 {

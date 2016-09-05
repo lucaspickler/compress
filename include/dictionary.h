@@ -60,29 +60,11 @@
  *                             Public Interface                               *
  *============================================================================*/
  
-	/*
-	 * Adds a character to a dictionary entry.
-	 */
-	extern int dictionary_add(dictionary_t dict, int i, char ch, code_t code);
-	
-	/*
-	 * Creates a dictionary.
-	 */
-	extern dictionary_t dictionary_create(int max_entries);
-	
-	/*
-	 * Destroys a dictionary.
-	 */
-	extern void dictionary_destroy(dictionary_t dict);
-	
-	/*
-	 * Searches for a character in a dictionary entry.
-	 */
-	extern int dictionary_find(dictionary_t dict, int i, char ch);
-	
-	/*
-	 * Resets a dictionary.
-	 */
-	extern void dictionary_reset(struct dictionary *dict);
+	/* Forward definitions. */
+	extern int dictionary_add(dictionary_t, int, char, code_t);
+	extern dictionary_t dictionary_create(int);
+	extern void dictionary_destroy(dictionary_t);
+	extern int dictionary_find(dictionary_t, int, char);
+	extern void dictionary_reset(struct dictionary *);
 
 #endif

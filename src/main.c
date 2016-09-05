@@ -32,12 +32,11 @@ char *outfile = NULL;    /* Output file name. */
  */
 static void usage(void)
 {
-	printf("\nUsage: tar [options] <input file> <output file>\n\n");
-	printf("Brief: archives files.\n\n");
+	printf("\nUsage: compress [options] <input file> <output file>\n\n");
+	printf("Brief: Compress a file.\n\n");
 	printf("Options:\n");
-	printf("  -c, --create  create a new archive\n");
-	printf("  -x, --extract extract all files from archive\n");
-	printf("      --lzw     use Lempel-Ziv-Welch algorithm\n");
+	printf("  -c, --create  Create a new archive\n");
+	printf("  -x, --extract Extract file from archive\n");
 	
 	exit(EXIT_SUCCESS);
 }
@@ -55,7 +54,8 @@ static void readargs(int argc, char **argv)
 		arg = argv[i];
 		
 		/* Parse option. */
-		if (arg[0] == '-') {
+		if (arg[0] == '-')
+		{
 			switch (arg[1])
 			{
 				/* Compress. */
@@ -71,30 +71,34 @@ static void readargs(int argc, char **argv)
 		}
 		
 		/* Get input file name. */
-		else if (infile == NULL) {
+		else if (infile == NULL)
 			infile = arg;
-		}
 		
 		/* Get output file name. */
-		else if (outfile == NULL) {
+		else if (outfile == NULL)
 			outfile = arg;
-		}	
 	}
 	
 	/* Missing input file. */
-	if (infile == NULL) {
+	if (infile == NULL)
+	{
 		warning("missing input file");
 		usage();
 	}
 	
 	/* Missing output file. */
-	if (outfile == NULL) {
+	if (outfile == NULL)
 		warning("missing output file");
-	}
 }
 
 /*
- * tar - File Archiver
+ * Usage: compress [options] <input file> <output file>
+ *
+ * Brief: Compress a file.
+ *
+ * Options:
+ *     -c, --create  Create a new archive.
+ *     -x, --extract Extract file from archive.
  */
 int main(int argc, char **argv)
 {
@@ -105,15 +109,13 @@ int main(int argc, char **argv)
 	
 	/* Open input file. */
 	input = fopen(infile, "r");
-	if (input == NULL) {
+	if (input == NULL)
 		error("cannot open input file");
-	}
 	
 	/* Open output file. */
 	output = fopen(outfile, "w");
-	if (output == NULL) {
+	if (output == NULL)
 		error("cannot open output file");
-	}
 
 	lzw(input, output, compress);
 

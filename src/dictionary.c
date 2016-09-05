@@ -117,9 +117,8 @@ int dictionary_find(struct dictionary *dict, int i, char ch)
 	
 	for (j = dict->entries[i].child; j >= 0; j = dict->entries[j].next)
 	{
-		if (ch == dict->entries[j].ch) {
+		if (ch == dict->entries[j].ch)
 			return (j);
-		}
 	}
 
 	return (-1);

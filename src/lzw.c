@@ -19,8 +19,6 @@
 
 #include <buffer.h>
 #include <dictionary.h>
-#include <global.h>
-#include <pthread.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -143,7 +141,7 @@ static void lzw_writebytes(buffer_t inbuf, FILE *outfile)
 }
 
 /*============================================================================*
- *                      lzw_compress()  and lzw_decompress()                  *
+ *                                   LZW                                      *
  *============================================================================*/
 
 /*
@@ -187,9 +185,8 @@ static void lzw_compress(buffer_t in, buffer_t out)
 			i = ni;
 		
 			/* Next character. */
-			if (ch != EOF) {
+			if (ch != EOF)
 				continue;
-			}
 		}
 		
 		buffer_put(out, dict->entries[i].code);
@@ -213,7 +210,7 @@ static void lzw_compress(buffer_t in, buffer_t out)
 }
 
 /*
- * 
+ * Builds a string.
  */
 static char *buildstr(char *base, char ch)
 {
@@ -235,10 +232,10 @@ static char *buildstr(char *base, char ch)
  */
 static void lzw_decompress(buffer_t in, buffer_t out)
 {
-	unsigned i;        /* Loop index.                 */
-	char *s, *p;
-	char **st;         /* String table.               */
-	unsigned code;
+	char *s, *p;   /* Working string. */
+	unsigned code; /* Working code.   */
+	unsigned i;    /* Loop index.     */
+	char **st;     /* String table.   */
 	
 	st = smalloc(((1 << WIDTH) + 2)*sizeof(char *));
 	
@@ -314,13 +311,8 @@ static void lzw_decompress(buffer_t in, buffer_t out)
 	free(st);
 }
 
-
-/*============================================================================*
- *                                   LZW                                      *
- *============================================================================*/
-
 /*
- * 
+ * Compress/Decompress a file using the LZW algorithm. 
  */
 void lzw(FILE *input, FILE *output, int compress)
 {

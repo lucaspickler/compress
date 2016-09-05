@@ -23,9 +23,9 @@
 #include <util.h>
 
 /* Command line arguments. */
-static int compress = 1; /* Compress?         */
-char *infile = NULL;     /* Input file name.  */
-char *outfile = NULL;    /* Output file name. */
+static int compress = 1;     /* Compress?         */
+static char *infile = NULL;  /* Input file name.  */
+static char *outfile = NULL; /* Output file name. */
 
 /*
  * Prints program usage and exits.
@@ -50,7 +50,8 @@ static void readargs(int argc, char **argv)
 	char *arg; /* Working argument. */
 	
 	/* Read command line arguments. */
-	for (i = 1; i < argc; i++) {
+	for (i = 1; i < argc; i++)
+	{
 		arg = argv[i];
 		
 		/* Parse option. */

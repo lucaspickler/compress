@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <util.h>
+#include <pthread.h>//<lpk> biblioteca de POSIX Threads.</lpk>
 
 /* 
  * Parameters.
@@ -34,11 +35,30 @@
  *                           Bit Buffer Reader/Writer                         *
  *============================================================================*/
 
+//<lpk> strutura de passagem de dados a ser passada a pthread.</lpk>
+struct stream{
+  struct buffer *buffer;
+  FILE *file;
+};
+//</lpk>
+
 /*
  * Writes data to a file.
  */
+
+/*<lpk> RETIRADO: pthreads só recebem um argumento void*.
 static void lzw_writebits(buffer_t in, FILE *out)
 {
+</lpk>*/
+
+//<lpk> Modificado para: </lpk>
+void* lzw_writebits(void* output)
+{
+  printf("Writebits thread created. pid: %d.\n",(int)pthread_self());//<lpk> debug </lpk>
+  struct stream *_output=output;//<lpk> cast para stream </lpk>
+  buffer_t in=_output->buffer;//<lpk> abre struct </lpk>
+  FILE *out=_output->file;//<lpk> abre struct </lpk>
+  //<lpk>código original:</lpk>
 	int bits;   /* Working bits. */
 	unsigned n; /* Current bit.  */
 	int buf;    /* Buffer.       */
@@ -66,6 +86,7 @@ static void lzw_writebits(buffer_t in, FILE *out)
 	
 	if (n > 0)
 		fputc((buf << (8 - n)) & 0xff, out);
+	return NULL;
 }
 
 /*============================================================================*
@@ -75,8 +96,14 @@ static void lzw_writebits(buffer_t in, FILE *out)
 /*
  * Reads data from a file.
  */
-static void lzw_readbits(FILE *in, buffer_t out)
+//<lpk> mesmo padrão de lzw_writebits. Ver lzw_writebits. </lpk>
+//<lpk> modificada para receber e abrir stream </lpk>
+void* lzw_readbits(void* input)
 {
+  printf("Readbits thread created. pid: %d.\n",(int)pthread_self());
+  struct stream *_input=input;
+  FILE *in=_input->file;
+  buffer_t out=_input->buffer;
 	int bits;   /* Working bits. */
 	unsigned n; /* Current bit.  */
 	int buf;    /* Buffer.       */
@@ -103,6 +130,7 @@ static void lzw_readbits(FILE *in, buffer_t out)
 	}
 			
 	buffer_put(out, EOF);
+	return NULL;
 }
 
 /*============================================================================*
@@ -112,8 +140,14 @@ static void lzw_readbits(FILE *in, buffer_t out)
 /*
  * Reads data from a file.
  */
-static void lzw_readbytes(FILE *infile, buffer_t outbuf)
+//<lpk> mesmo padrão de lzw_writebits. Ver lzw_writebits. </lpk>
+//<lpk> modificada para receber e abrir stream </lpk>
+void* lzw_readbytes(void* input)
 {
+  printf("Readbytes thread created. pid: %d.\n",(int)pthread_self());
+  struct stream *_input=input;
+  FILE *infile = _input->file;
+  buffer_t outbuf = _input->buffer;
 	int ch;
 
 	/* Read data from file to the buffer. */
@@ -121,6 +155,7 @@ static void lzw_readbytes(FILE *infile, buffer_t outbuf)
 		buffer_put(outbuf, ch & 0xff);
 	
 	buffer_put(outbuf, EOF);
+	return NULL;
 }
 
 /*============================================================================*
@@ -130,13 +165,20 @@ static void lzw_readbytes(FILE *infile, buffer_t outbuf)
 /*
  * Writes data to a file.
  */
-static void lzw_writebytes(buffer_t inbuf, FILE *outfile)
+//<lpk> mesmo padrão de lzw_writebits. Ver lzw_writebits. </lpk>
+//<lpk> modificada para receber e abrir stream </lpk>
+void* lzw_writebytes(void* output)
 {
+  printf("Writebytes thread created. pid: %d.\n",(int)pthread_self());
+  struct stream *_output=output;
+  buffer_t inbuf=_output->buffer;
+    FILE *outfile=_output->file;  
 	int ch;
 	
 	/* Read data from file to the buffer. */
 	while ((ch = buffer_get(inbuf)) != EOF)
 		fputc(ch, outfile);
+	return NULL;
 }
 
 /*============================================================================*
@@ -158,7 +200,7 @@ static code_t lzw_init(dictionary_t dict, int radix)
  * Compress data.
  */
 static void lzw_compress(buffer_t in, buffer_t out)
-{	
+{
 	unsigned ch;       /* Working character. */
 	int i, ni;         /* Working entries.   */
 	code_t code;       /* Current code.      */
@@ -311,30 +353,83 @@ static void lzw_decompress(buffer_t in, buffer_t out)
 /*
  * Compress/Decompress a file using the LZW algorithm. 
  */
-void lzw(FILE *input, FILE *output, int compress)
+void lzw(FILE *inputFile, FILE *outputFile, int compress)
 {
-	buffer_t inbuf;  /* Input buffer.  */
-	buffer_t outbuf; /* Output buffer. */
+  /*<lpk> RETIRADO: buffers são usados em streams
+    buffer_t inbuf;  // Input buffer.  
+    buffer_t outbuf; // Output buffer. 
 
-	inbuf = buffer_create(1024);
-	outbuf = buffer_create(1024);
+    inbuf = buffer_create(1024);
+    outbuf = buffer_create(1024);
+  </lpk>*/
+  printf("Initializing LZW...\n");//<lpk> debug </lpk>
+  pthread_t inthread, outthread;//<lpk> criação das threads </lpk>
+  struct stream inattr, outattr;//<lpk> criação dos streams</lpk>
 
-	/* Compress mode. */
-	if (compress)
-	{
-		lzw_readbytes(input, inbuf);
+  int errnu=0;//<lpk> número do erro de criação da thread </lpk>
+  inattr.buffer=buffer_create(1024);//<lpk>criacao dos buffer dentro dos seus streams</lpk>
+	outattr.buffer=buffer_create(1024);
+	inattr.file=inputFile;//<lpk> associação dos arquivos </lpk>
+	outattr.file=outputFile;
+	
+	/* Compress mode. */	
+	  /*<lpk> RETIRADO: funções serão chamadas em threads
+	    lzw_readbytes(input, inbuf);
 		lzw_compress(inbuf, outbuf);
 		lzw_writebits(outbuf, output);
+	  </lpk>*/
+	//<lpk>lê arquivo em texto (texto a ser comprimido) com readbytes e escreve em binário (arquivo comprimidos) com writebits</lpk>
+	if (compress)
+	  { //<lpk> se acontecer erro, função retorna valor diferente de zero e entra no loop</lpk>
+	  if((errnu=pthread_create(&inthread,
+				  NULL,
+				  lzw_readbytes,
+				   &inattr))){
+	    //<lpk> printa info de debug </lpk>
+	    printf("Error creating readbytes thread.%d\n", errnu);
+	    printf("Exiting process: %d.\n", (int)pthread_self());
+	    //<lpk> sai do processo </lpk>
+	    exit(-1);
+	  }
+	  //<lpk> mesmo padrão da criação da thread da readbytes acima. </lpk>
+	  if((errnu=pthread_create(&outthread,
+				    NULL,
+				    lzw_writebits,
+				     &outattr))){
+	      printf("Error creating writebits thread. pid: %d.\n",errnu);
+	      printf("Exiting process: %d.\n", (int)pthread_self());
+	      exit(-1);
+	  }
+	  lzw_compress(inattr.buffer, outattr.buffer);  
 	}
-	
+  //<lpk> mesmo padrão da compressão acima mas usando funçoes de leitura em binário (arquivo comprimido) com readbits e escrita em texto (arquivo de saída) com writebytes <lpk>	
 	/* Decompress mode. */
 	else
-	{	
-		lzw_readbits(input, inbuf);
-		lzw_decompress(inbuf, outbuf);
-		lzw_writebytes(outbuf, output);
+	{
+	  if((errnu=pthread_create(&inthread,
+				  NULL,
+				  lzw_readbits,
+				  &inattr))){
+	    printf("Error creating readbits thread.%d\n", errnu);
+	    printf("Existing process: %d.\n", (int)pthread_self());
+	    exit(-1);
+	  }
+	  if((errnu=pthread_create(&outthread,
+				    NULL,
+				    lzw_writebytes,
+				     &outattr))){
+	      printf("Error creating writebytes thread. pid: %d.\n",errnu);
+	     printf("Exiting process: %d.\n", (int)pthread_self());
+		exit(-1);
+	  }
+	  lzw_decompress(inattr.buffer, outattr.buffer); 
 	}
-	
-	buffer_destroy(outbuf);
-	buffer_destroy(inbuf);
+	//<lpk> aguarda as outras threads finalizarem. </lpk>
+	pthread_join(inthread, NULL);
+	pthread_join(outthread, NULL);
+
+	buffer_destroy(outattr.buffer);
+	buffer_destroy(inattr.buffer);
+	printf("LZW Finalized\n"); //<lpk> debug </lpk>
 }
+
